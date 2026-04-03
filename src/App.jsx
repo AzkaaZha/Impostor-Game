@@ -22,8 +22,23 @@ function randomCode(length = 6) {
   return result
 }
 
-function getAvatar(index = 0) {
-  return AVATARS[index % AVATARS.length]
+function hashString(str = '') {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i)
+    hash |= 0
+  }
+  return Math.abs(hash)
+}
+
+function getAvatarBySeed(seed = '') {
+  const index = hashString(seed) % AVATARS.length
+  return AVATARS[index]
+}
+
+function getPlayerAvatar(player) {
+  if (player?.avatar) return player.avatar
+  return getAvatarBySeed(`${player?.id || ''}-${player?.name || ''}`)
 }
 
 function HomePage() {
@@ -69,7 +84,7 @@ function HomePage() {
         <span className="badge">Party Game</span>
         <h1>Tebak Impostor</h1>
         <p className="subtitle">
-          Main bareng dari HP, kasih clue 3 ronde, lalu voting siapa impostornya.
+          Main bareng dari HP, isi clue 3 ronde, lalu voting siapa impostornya.
         </p>
 
         <div className="hero-actions">
@@ -110,16 +125,13 @@ function JoinPage() {
     const cleanName = name.trim()
     if (!cleanName) return
 
-    const roomPlayersSnap = await get(ref(db, `rooms/${roomId}/players`))
-    const playerCount = roomPlayersSnap.exists()
-      ? Object.keys(roomPlayersSnap.val()).length
-      : 0
-
     const playerRef = push(ref(db, `rooms/${roomId}/players`))
+    const avatar = getAvatarBySeed(`${playerRef.key}-${cleanName}`)
+
     await set(playerRef, {
       id: playerRef.key,
       name: cleanName,
-      avatar: getAvatar(playerCount),
+      avatar,
       isImpostor: false,
       assignedWord: '',
       joinedAt: Date.now(),
@@ -220,6 +232,7 @@ function HostPage() {
       updates[`rooms/${roomId}/players/${player.id}/assignedWord`] = isImpostor
         ? impostorWord.trim()
         : normalWord.trim()
+      updates[`rooms/${roomId}/players/${player.id}/avatar`] = getPlayerAvatar(player)
     })
 
     updates[`rooms/${roomId}/settings/normalWord`] = normalWord.trim()
@@ -311,6 +324,7 @@ function HostPage() {
     players.forEach((player) => {
       updates[`rooms/${roomId}/players/${player.id}/isImpostor`] = false
       updates[`rooms/${roomId}/players/${player.id}/assignedWord`] = ''
+      updates[`rooms/${roomId}/players/${player.id}/avatar`] = getPlayerAvatar(player)
     })
 
     await update(ref(db), updates)
@@ -381,7 +395,7 @@ function HostPage() {
                 <option value="">-- Pilih pemain --</option>
                 {players.map((player) => (
                   <option key={player.id} value={player.id}>
-                    {player.avatar} {player.name}
+                    {getPlayerAvatar(player)} {player.name}
                   </option>
                 ))}
               </select>
@@ -425,7 +439,7 @@ function HostPage() {
               {players.map((player) => (
                 <div className="player-item" key={player.id}>
                   <div className="player-profile">
-                    <div className="avatar-circle">{player.avatar || '🙂'}</div>
+                    <div className="avatar-circle">{getPlayerAvatar(player)}</div>
                     <div>
                       <strong>{player.name}</strong>
                       <div className="muted">
@@ -459,7 +473,7 @@ function HostPage() {
                       return (
                         <div className="vote-item" key={`${roundNumber}-${player.id}`}>
                           <span>
-                            {player.avatar} {player.name}
+                            {getPlayerAvatar(player)} {player.name}
                           </span>
                           <strong>{clue}</strong>
                         </div>
@@ -484,7 +498,7 @@ function HostPage() {
               <div className="vote-map">
                 {players.map((player) => (
                   <div className="vote-item" key={player.id}>
-                    <span>{player.avatar} {player.name}</span>
+                    <span>{getPlayerAvatar(player)} {player.name}</span>
                     <strong>{room.result.countMap?.[player.id] || 0} vote</strong>
                   </div>
                 ))}
@@ -547,6 +561,7 @@ function PlayerPage() {
   const votingTargets = players.filter((p) => p.id !== playerId)
   const currentRound = room.round || 1
   const maxRounds = room.maxRounds || 3
+  const myAvatar = getPlayerAvatar(player)
 
   const submitVote = async () => {
     if (!selectedVote) return
@@ -571,15 +586,11 @@ function PlayerPage() {
     })
   }
 
-  const getMyClue = (roundNumber) => {
-    return room?.clues?.[roundNumber]?.[playerId]?.text || '-'
-  }
-
   return (
     <div className="page center-page">
       <div className="card player-card">
         <div className="player-top-header">
-          <div className="avatar-circle large-avatar">{player.avatar || '🙂'}</div>
+          <div className="avatar-circle large-avatar">{myAvatar}</div>
           <div>
             <span className="badge">Halo, {player.name}</span>
             <h2>Tebak Impostor</h2>
@@ -602,7 +613,7 @@ function PlayerPage() {
             </div>
 
             <p className="helper-text">
-              Setelah kamu menyebutkan clue secara lisan, tulis 1 kata clue kamu di bawah ini.
+              Semua pemain bisa menyebutkan clue secara offline dengan urutan bebas. Setelah kamu menyebutkan clue, tulis 1 kata clue kamu di bawah ini.
             </p>
 
             <input
@@ -616,19 +627,11 @@ function PlayerPage() {
             </button>
 
             <div className="result-card">
-              <h3>Rekap Clue Kamu</h3>
+              <h3>Status Input Kamu</h3>
               <div className="vote-map">
                 <div className="vote-item">
-                  <span>Ronde 1</span>
-                  <strong>{getMyClue(1)}</strong>
-                </div>
-                <div className="vote-item">
-                  <span>Ronde 2</span>
-                  <strong>{getMyClue(2)}</strong>
-                </div>
-                <div className="vote-item">
-                  <span>Ronde 3</span>
-                  <strong>{getMyClue(3)}</strong>
+                  <span>Ronde aktif</span>
+                  <strong>{room?.clues?.[currentRound]?.[playerId]?.text ? 'Sudah diisi' : 'Belum diisi'}</strong>
                 </div>
               </div>
             </div>
@@ -648,7 +651,7 @@ function PlayerPage() {
                     const clue = room?.clues?.[roundNumber]?.[p.id]?.text || '-'
                     return (
                       <div className="vote-item" key={`${roundNumber}-${p.id}`}>
-                        <span>{p.avatar} {p.name}</span>
+                        <span>{getPlayerAvatar(p)} {p.name}</span>
                         <strong>{clue}</strong>
                       </div>
                     )
@@ -671,7 +674,7 @@ function PlayerPage() {
                     const clue = room?.clues?.[roundNumber]?.[p.id]?.text || '-'
                     return (
                       <div className="vote-item" key={`${roundNumber}-${p.id}`}>
-                        <span>{p.avatar} {p.name}</span>
+                        <span>{getPlayerAvatar(p)} {p.name}</span>
                         <strong>{clue}</strong>
                       </div>
                     )
@@ -692,7 +695,7 @@ function PlayerPage() {
                     onChange={(e) => setSelectedVote(e.target.value)}
                     disabled={voteSent}
                   />
-                  <span>{target.avatar} {target.name}</span>
+                  <span>{getPlayerAvatar(target)} {target.name}</span>
                 </label>
               ))}
             </div>
@@ -729,7 +732,7 @@ function PlayerPage() {
                       const clue = room?.clues?.[roundNumber]?.[p.id]?.text || '-'
                       return (
                         <div className="vote-item" key={`${roundNumber}-${p.id}`}>
-                          <span>{p.avatar} {p.name}</span>
+                          <span>{getPlayerAvatar(p)} {p.name}</span>
                           <strong>{clue}</strong>
                         </div>
                       )
