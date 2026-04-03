@@ -1,0 +1,260 @@
+:root {
+  font-family: Inter, system-ui, Arial, sans-serif;
+  color: #f7f8ff;
+  background: linear-gradient(180deg, #0f1226 0%, #171a35 100%);
+}
+
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #0f1226 0%, #171a35 100%);
+}
+button,
+input {
+  font: inherit;
+}
+input {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  padding: 14px 16px;
+  border-radius: 14px;
+  outline: none;
+}
+input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+}
+.page {
+  min-height: 100vh;
+  padding: 20px;
+}
+.center-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.container {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.two-col {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 20px;
+}
+.card {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 22px;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
+}
+.hero-card {
+  max-width: 720px;
+  width: 100%;
+  text-align: center;
+  padding: 28px;
+}
+.small-card {
+  max-width: 420px;
+  width: 100%;
+}
+.player-card {
+  width: 100%;
+  max-width: 520px;
+}
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+h1 {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+h2 {
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+h3 {
+  font-size: 22px;
+  margin-bottom: 12px;
+}
+.subtitle,
+.muted,
+.helper-text {
+  color: rgba(255, 255, 255, 0.72);
+}
+.badge {
+  display: inline-block;
+  background: rgba(124, 92, 255, 0.2);
+  color: #d9ceff;
+  border: 1px solid rgba(167, 145, 255, 0.35);
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+.btn {
+  border: none;
+  border-radius: 14px;
+  padding: 14px 18px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: 0.2s ease;
+}
+.btn:hover {
+  transform: translateY(-1px);
+  opacity: 0.95;
+}
+.btn-primary {
+  background: linear-gradient(135deg, #7c5cff, #5b8cff);
+  color: white;
+}
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+}
+.btn-warning {
+  background: linear-gradient(135deg, #ff9a3d, #ffbf47);
+  color: #1a1a1a;
+}
+.btn-success {
+  background: linear-gradient(135deg, #23c483, #69eaa7);
+  color: #082414;
+}
+.btn-danger {
+  background: linear-gradient(135deg, #ff5d73, #ff8da1);
+  color: #2b0a10;
+}
+.full-btn {
+  width: 100%;
+}
+.hero-actions,
+.join-box,
+.action-group {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.join-box {
+  margin-top: 18px;
+}
+.join-box input {
+  flex: 1;
+  min-width: 180px;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 18px 0;
+}
+.row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.gap-wrap {
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.share-link,
+.status-box,
+.result-player-box,
+.secret-word {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  padding: 14px;
+}
+.share-link {
+  margin: 14px 0;
+  word-break: break-all;
+}
+.player-list,
+.vote-map,
+.vote-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.player-item,
+.vote-item,
+.vote-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.vote-option {
+  justify-content: flex-start;
+}
+.vote-option input {
+  width: auto;
+}
+.pill {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 13px;
+}
+.result-card {
+  margin-top: 18px;
+}
+.secret-word {
+  margin: 14px 0;
+  font-size: 28px;
+  font-weight: 800;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+@media (max-width: 860px) {
+  .two-col {
+    grid-template-columns: 1fr;
+  }
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  h1 {
+    font-size: 32px;
+  }
+  h2 {
+    font-size: 24px;
+  }
+}
+@media (max-width: 520px) {
+  .page {
+    padding: 14px;
+  }
+  .card {
+    padding: 18px;
+    border-radius: 20px;
+  }
+  .hero-actions,
+  .join-box,
+  .action-group {
+    flex-direction: column;
+  }
+  .btn {
+    width: 100%;
+  }
+}
