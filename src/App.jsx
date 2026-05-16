@@ -43,28 +43,36 @@ function getPlayerAvatar(player) {
 
 function BGM() {
   const [isPlaying, setIsPlaying] = useState(false)
-  const audioRef = useMemo(() => new Audio('https://cdn.pixabay.com/audio/2022/03/10/audio_c8c8a731ad.mp3'), [])
-
-  useEffect(() => {
-    audioRef.loop = true
-    return () => {
-      audioRef.pause()
+  const [isLoaded, setIsLoaded] = useState(false)
+  const audioRef = useEffect(() => {
+    const audio = document.getElementById('bgm-audio')
+    if (audio) {
+      audio.volume = 0.4
+      setIsLoaded(true)
     }
-  }, [audioRef])
+  }, [])
 
   const toggle = () => {
+    const audio = document.getElementById('bgm-audio')
+    if (!audio) return
+
     if (isPlaying) {
-      audioRef.pause()
+      audio.pause()
     } else {
-      audioRef.play().catch(e => console.log("User interaction required"))
+      audio.play().catch(e => {
+        alert("Klik di mana saja pada halaman dulu, baru nyalakan musik (kebijakan browser).")
+      })
     }
     setIsPlaying(!isPlaying)
   }
 
   return (
-    <button className="btn-bgm" onClick={toggle}>
-      {isPlaying ? '🔊 Musik ON' : '🔇 Musik OFF'}
-    </button>
+    <div className="bgm-container">
+      <audio id="bgm-audio" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3" loop />
+      <button className="btn-bgm" onClick={toggle}>
+        {isPlaying ? '🔊 Musik ON' : '🔇 Musik OFF'}
+      </button>
+    </div>
   )
 }
 
@@ -73,31 +81,36 @@ function HomePage() {
   const navigate = useNavigate()
 
   const createRoom = async () => {
-    const roomId = randomCode()
-    const roomRef = ref(db, `rooms/${roomId}`)
+    try {
+      const roomId = randomCode()
+      const roomRef = ref(db, `rooms/${roomId}`)
 
-    await set(roomRef, {
-      roomId,
-      phase: 'lobby',
-      createdAt: Date.now(),
-      round: 1,
-      maxRounds: 3,
-      settings: {
-        normalWord: '',
-        impostorWord: '',
-        selectedImpostorId: '',
-      },
-      players: {},
-      votes: {},
-      clues: {
-        1: {},
-        2: {},
-        3: {},
-      },
-      result: null,
-    })
+      await set(roomRef, {
+        roomId,
+        phase: 'lobby',
+        createdAt: Date.now(),
+        round: 1,
+        maxRounds: 3,
+        settings: {
+          normalWord: '',
+          impostorWord: '',
+          selectedImpostorId: '',
+        },
+        players: {},
+        votes: {},
+        clues: {
+          1: {},
+          2: {},
+          3: {},
+        },
+        result: null,
+      })
 
-    navigate(`/host/${roomId}`)
+      navigate(`/host/${roomId}`)
+    } catch (error) {
+      console.error(error)
+      alert("Gagal membuat room. Pastikan koneksi internet stabil dan Firebase Config sudah benar di Vercel.")
+    }
   }
 
   const handleJoin = () => {
@@ -794,7 +807,6 @@ export default function App() {
   return (
     <>
       <BGM />
-      <img src="/suspicious_character_1778890538410.png" className="suspicious-character" alt="suspicious" />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/join/:roomId" element={<JoinPage />} />

@@ -55,18 +55,6 @@ body::before {
   animation: float 8s ease-in-out infinite;
 }
 
-.suspicious-character {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 150px;
-  height: auto;
-  z-index: 10;
-  pointer-events: none;
-  opacity: 0.8;
-  animation: float 6s ease-in-out infinite;
-}
-
 button,
 input,
 select {
