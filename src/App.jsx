@@ -109,7 +109,7 @@ function HomePage() {
       navigate(`/host/${roomId}`)
     } catch (error) {
       console.error(error)
-      alert("Gagal membuat room. Pastikan koneksi internet stabil dan Firebase Config sudah benar di Vercel.")
+      alert(`Gagal membuat room. Error: ${error.message}`)
     }
   }
 
