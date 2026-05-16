@@ -41,6 +41,33 @@ function getPlayerAvatar(player) {
   return getAvatarBySeed(`${player?.id || ''}-${player?.name || ''}`)
 }
 
+function BGM() {
+  const [isPlaying, setIsPlaying] = useState(false)
+  const audioRef = useMemo(() => new Audio('https://cdn.pixabay.com/audio/2022/03/10/audio_c8c8a731ad.mp3'), [])
+
+  useEffect(() => {
+    audioRef.loop = true
+    return () => {
+      audioRef.pause()
+    }
+  }, [audioRef])
+
+  const toggle = () => {
+    if (isPlaying) {
+      audioRef.pause()
+    } else {
+      audioRef.play().catch(e => console.log("User interaction required"))
+    }
+    setIsPlaying(!isPlaying)
+  }
+
+  return (
+    <button className="btn-bgm" onClick={toggle}>
+      {isPlaying ? '🔊 Musik ON' : '🔇 Musik OFF'}
+    </button>
+  )
+}
+
 function HomePage() {
   const [joinCode, setJoinCode] = useState('')
   const navigate = useNavigate()
@@ -78,6 +105,14 @@ function HomePage() {
     navigate(`/join/${joinCode.trim().toUpperCase()}`)
   }
 
+  const savedRoomId = localStorage.getItem('tebak_room_id')
+  const savedPlayerId = localStorage.getItem('tebak_player_id')
+  const savedPlayerName = localStorage.getItem('tebak_player_name')
+
+  const resumeGame = () => {
+    navigate(`/player/${savedRoomId}/${savedPlayerId}`)
+  }
+
   return (
     <div className="page center-page">
       <div className="card hero-card">
@@ -91,6 +126,11 @@ function HomePage() {
           <button className="btn btn-primary" onClick={createRoom}>
             Buat Room sebagai Host
           </button>
+          {savedRoomId && savedPlayerId && (
+            <button className="btn btn-success" onClick={resumeGame}>
+              Lanjutkan Game ({savedPlayerName})
+            </button>
+          )}
         </div>
 
         <div className="join-box">
@@ -137,10 +177,20 @@ function JoinPage() {
       joinedAt: Date.now(),
     })
 
+    localStorage.setItem('tebak_room_id', roomId)
     localStorage.setItem('tebak_player_id', playerRef.key)
     localStorage.setItem('tebak_player_name', cleanName)
     navigate(`/player/${roomId}/${playerRef.key}`)
   }
+
+  // Auto-rejoin logic
+  useEffect(() => {
+    const savedRoomId = localStorage.getItem('tebak_room_id')
+    const savedPlayerId = localStorage.getItem('tebak_player_id')
+    if (savedRoomId === roomId && savedPlayerId) {
+      navigate(`/player/${roomId}/${savedPlayerId}`)
+    }
+  }, [roomId, navigate])
 
   if (!roomExists) {
     return (
@@ -219,15 +269,14 @@ function HostPage() {
       return
     }
 
-    if (!selectedImpostorId) {
-      alert('Pilih dulu siapa yang jadi impostor.')
-      return
-    }
-
     const updates = {}
 
+    // Randomize Impostor
+    const randomIndex = Math.floor(Math.random() * players.length)
+    const randomImpostorId = players[randomIndex].id
+
     players.forEach((player) => {
-      const isImpostor = player.id === selectedImpostorId
+      const isImpostor = player.id === randomImpostorId
       updates[`rooms/${roomId}/players/${player.id}/isImpostor`] = isImpostor
       updates[`rooms/${roomId}/players/${player.id}/assignedWord`] = isImpostor
         ? impostorWord.trim()
@@ -237,7 +286,7 @@ function HostPage() {
 
     updates[`rooms/${roomId}/settings/normalWord`] = normalWord.trim()
     updates[`rooms/${roomId}/settings/impostorWord`] = impostorWord.trim()
-    updates[`rooms/${roomId}/settings/selectedImpostorId`] = selectedImpostorId
+    updates[`rooms/${roomId}/settings/selectedImpostorId`] = randomImpostorId
     updates[`rooms/${roomId}/phase`] = 'playing'
     updates[`rooms/${roomId}/round`] = 1
     updates[`rooms/${roomId}/votes`] = {}
@@ -387,18 +436,11 @@ function HostPage() {
           <div className="form-grid">
             <div>
               <label>Pilih impostor</label>
-              <select
-                className="select-box"
-                value={selectedImpostorId}
-                onChange={(e) => setSelectedImpostorId(e.target.value)}
-              >
-                <option value="">-- Pilih pemain --</option>
-                {players.map((player) => (
-                  <option key={player.id} value={player.id}>
-                    {getPlayerAvatar(player)} {player.name}
-                  </option>
-                ))}
-              </select>
+              <div className="status-box">
+                {room.phase === 'lobby' 
+                  ? 'Impostor akan dipilih otomatis saat game dimulai.' 
+                  : 'Impostor sudah dipilih (Rahasia)'}
+              </div>
             </div>
             <div>
               <label>Status game</label>
@@ -453,7 +495,7 @@ function HostPage() {
                   </div>
 
                   <div className="pill">
-                    {selectedImpostorId === player.id ? 'Terpilih' : 'Peserta'}
+                    {room.phase === 'result' && player.isImpostor ? 'IMPOSTOR' : 'Peserta'}
                   </div>
                 </div>
               ))}
@@ -750,11 +792,15 @@ function PlayerPage() {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/join/:roomId" element={<JoinPage />} />
-      <Route path="/host/:roomId" element={<HostPage />} />
-      <Route path="/player/:roomId/:playerId" element={<PlayerPage />} />
-    </Routes>
+    <>
+      <BGM />
+      <img src="/suspicious_character_1778890538410.png" className="suspicious-character" alt="suspicious" />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/join/:roomId" element={<JoinPage />} />
+        <Route path="/host/:roomId" element={<HostPage />} />
+        <Route path="/player/:roomId/:playerId" element={<PlayerPage />} />
+      </Routes>
+    </>
   )
 }
